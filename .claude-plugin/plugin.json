@@ -1,0 +1,10 @@
+{
+  "name": "copy-rich",
+  "version": "0.1.0",
+  "description": "Copy Claude's last reply to the clipboard as rich text so links and formatting survive in Slack, Teams, email and docs.",
+  "author": { "name": "Antonio Falcao Jr", "url": "https://github.com/AntonioFalcaoJr" },
+  "homepage": "https://github.com/AntonioFalcaoJr/copy-rich",
+  "repository": "https://github.com/AntonioFalcaoJr/copy-rich",
+  "license": "MIT",
+  "keywords": ["clipboard", "rich-text", "html", "slack", "teams", "markdown"]
+}

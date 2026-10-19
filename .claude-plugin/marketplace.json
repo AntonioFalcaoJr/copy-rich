@@ -1,0 +1,12 @@
+{
+  "name": "copy-rich",
+  "description": "Rich-text clipboard tools for Claude Code.",
+  "owner": { "name": "Antonio Falcao Jr", "url": "https://github.com/AntonioFalcaoJr" },
+  "plugins": [
+    {
+      "name": "copy-rich",
+      "source": "./",
+      "description": "Copy Claude's last reply to the clipboard as rich text so links and formatting survive in Slack, Teams, email and docs."
+    }
+  ]
+}
