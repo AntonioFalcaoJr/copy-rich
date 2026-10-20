@@ -2,8 +2,6 @@
 
 Copy Claude Code's last reply to the clipboard as **rich text**, so links, bold, lists and tables survive when you paste into Slack, Teams, email or Google Docs.
 
-[Português](README.pt-BR.md)
-
 ## Why
 
 The terminal gives you Markdown. Pasting Markdown into Teams or Slack gives you literal `**` and `[text](url)`. `copy-rich` puts real HTML on the clipboard instead, with the Markdown as the plain-text fallback.
