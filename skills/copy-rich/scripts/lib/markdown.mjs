@@ -213,6 +213,43 @@ function parseBlocks(lines, opts) {
 }
 
 /**
+ * Finds the Markdown blockquotes of a reply (top level, outside fenced code) and returns the LAST one with one
+ * level of `>` stripped and paragraph breaks kept. Used so that "intro, quoted message, closing note" copies only
+ * the message. Same block rule as parseBlocks: a quote is a run of consecutive lines starting with `>` (up to 3
+ * spaces of indent). Returns null when the reply has no non-empty blockquote; `count` is how many it has.
+ */
+export function extractLastQuote(markdown) {
+  const lines = markdown.replace(/\r\n?/g, '\n').split('\n');
+  const quotes = [];
+  let fence = null;
+  let run = null;
+  const flush = () => {
+    if (run) {
+      while (run.length && !run[0].trim()) run.shift();
+      while (run.length && !run[run.length - 1].trim()) run.pop();
+      if (run.length) quotes.push(run.join('\n'));
+    }
+    run = null;
+  };
+  for (const line of lines) {
+    if (fence) {
+      const t = line.trim();
+      if (t.length >= fence.length && t[0] === fence[0] && /^[`~]+$/.test(t)) fence = null;
+      continue;
+    }
+    if (/^\s{0,3}>/.test(line)) {
+      (run ??= []).push(line.replace(/^\s{0,3}> ?/, ''));
+      continue;
+    }
+    flush();
+    const f = line.match(FENCE);
+    if (f) fence = f[2];
+  }
+  flush();
+  return quotes.length ? { markdown: quotes.at(-1), count: quotes.length } : null;
+}
+
+/**
  * @param {string} markdown
  * @param {{target?: 'html' | 'teams' | 'slack'}} [options]
  */

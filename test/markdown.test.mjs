@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { markdownToHtml as md } from '../skills/copy-rich/scripts/lib/markdown.mjs';
+import { markdownToHtml as md, extractLastQuote } from '../skills/copy-rich/scripts/lib/markdown.mjs';
 
 test('paragraph with emphasis, code and link', () => {
   assert.equal(
@@ -95,4 +95,22 @@ test('accents and emoji pass through untouched', () => {
 
 test('underscores inside words are not emphasis', () => {
   assert.equal(md('snake_case_name'), '<p>snake_case_name</p>');
+});
+
+test('extractLastQuote returns only the quoted message, markers stripped, paragraphs kept', () => {
+  const reply = 'Intro line:\n\n> First paragraph with [a link](https://example.com).\n>\n> Second paragraph.\n\nClosing note.';
+  const q = extractLastQuote(reply);
+  assert.equal(q.count, 1);
+  assert.equal(q.markdown, 'First paragraph with [a link](https://example.com).\n\nSecond paragraph.');
+  assert.equal(md(q.markdown), '<p>First paragraph with <a href="https://example.com">a link</a>.</p>\n<p>Second paragraph.</p>');
+});
+
+test('extractLastQuote takes the last of several quotes and reports the count', () => {
+  const q = extractLastQuote('> Draft A\n\nbetween\n\n> Draft B');
+  assert.deepEqual(q, { markdown: 'Draft B', count: 2 });
+});
+
+test('extractLastQuote ignores > inside fenced code and returns null without a quote', () => {
+  assert.equal(extractLastQuote('```\n> not a quote\n```\n\nplain'), null);
+  assert.equal(extractLastQuote('no quote here'), null);
 });
