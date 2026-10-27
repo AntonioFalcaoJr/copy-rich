@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 // copy-rich: put Markdown on the clipboard as rich text, ready to paste into Slack, Teams, email or docs.
 //
-//   copy-rich.mjs [slack|teams|html] [turn] [--file <path>|-] [--session <id>] [--print] [--soft]
+//   copy-rich.mjs [slack|teams|html] [turn] [full] [--file <path>|-] [--session <id>] [--print] [--soft]
 //
 // Source of the Markdown, in order: --file / stdin, else the last Claude reply in the session transcript.
+// If that Markdown has a blockquote, only the LAST blockquote is copied (without the `>` markers), so "intro,
+// quoted message, closing note" pastes just the message. Pass `full` (or --full) to copy the whole reply anyway.
 
 import fs from 'node:fs';
 import { parseArgs } from 'node:util';
 import { writeClipboard } from './lib/clipboard.mjs';
 import { findTranscript, parseTurns, pickReply } from './lib/transcript.mjs';
-import { markdownToHtml } from './lib/markdown.mjs';
+import { markdownToHtml, extractLastQuote } from './lib/markdown.mjs';
 
 const TARGETS = new Set(['html', 'teams', 'slack']);
 
@@ -20,6 +22,7 @@ const { values, positionals } = parseArgs({
     file: { type: 'string', short: 'f' },
     session: { type: 'string' },
     turn: { type: 'boolean' },
+    full: { type: 'boolean' },
     print: { type: 'boolean' },
     soft: { type: 'boolean' },
     help: { type: 'boolean', short: 'h' },
@@ -27,7 +30,7 @@ const { values, positionals } = parseArgs({
 });
 
 if (values.help) {
-  console.log('usage: copy-rich [slack|teams|html] [turn] [--file <path>|-] [--session <id>] [--print] [--soft]');
+  console.log('usage: copy-rich [slack|teams|html] [turn] [full] [--file <path>|-] [--session <id>] [--print] [--soft]');
   process.exit(0);
 }
 
@@ -44,7 +47,10 @@ try {
   const target = values.target ?? positionals.find((p) => TARGETS.has(p)) ?? 'html';
   if (!TARGETS.has(target)) throw new Error(`Unknown target "${target}". Use slack, teams or html.`);
 
-  const { md, from } = sourceMarkdown();
+  const source = sourceMarkdown();
+  const { from } = source;
+  const quote = values.full || positionals.includes('full') ? null : extractLastQuote(source.md);
+  const md = quote ? quote.markdown : source.md;
   const html = markdownToHtml(md, { target });
 
   if (values.print) {
@@ -52,7 +58,8 @@ try {
   } else {
     const method = writeClipboard(html, md);
     const links = (html.match(/<a href=/g) ?? []).length;
-    console.log(`copy-rich: copied ${md.length} chars from ${from} as rich text (${target}, ${links} link${links === 1 ? '' : 's'}) via ${method}. Paste with Ctrl+V / Cmd+V.`);
+    const scope = quote ? `, quoted block only${quote.count > 1 ? `, last of ${quote.count}` : ''}` : '';
+    console.log(`copy-rich: copied ${md.length} chars from ${from} as rich text (${target}, ${links} link${links === 1 ? '' : 's'}${scope}) via ${method}. Paste with Ctrl+V / Cmd+V.`);
   }
 } catch (err) {
   console.log(`copy-rich: ERROR ${err.message}`);
