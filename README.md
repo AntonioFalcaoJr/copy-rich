@@ -55,10 +55,10 @@ Headings, bold, italic, strikethrough, inline code, links and bare URLs, nested 
 |---|---|---|
 | Windows | PowerShell 5.1, `CF_HTML` (UTF-8, byte offsets) + Unicode text | Tested end to end in Claude Code. The raw clipboard bytes are checked in the test suite. |
 | macOS | `osascript` (JXA) writing HTML + RTF + text | Written, **not tested** on a Mac |
-| Linux | `wl-copy` or `xclip`, `text/html` only | Written, **not tested** |
-| WSL | Calls `powershell.exe` | Written, **not tested** |
+| Linux | `wl-copy` or `xclip`, `text/html` only | Tested |
+| WSL | Calls `powershell.exe` | Tested |
 
-The clipboard contents are verified; how Slack and Teams render a paste is up to those apps, and I have not checked every client version. Issues with details are welcome, especially from macOS and Linux.
+The clipboard contents are verified; how Slack and Teams render a paste is up to those apps, and I have not checked every client version. Issues with details are welcome, especially from macOS, which I have not been able to test.
 
 ## Develop
 
